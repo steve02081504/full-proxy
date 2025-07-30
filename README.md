@@ -14,7 +14,9 @@ npm install full-proxy
 
 ## Usage
 
-The `FullProxy` function takes a single argument: a `base` function that returns the target object. Every interaction with the proxy (e.g., getting, setting, calling a function) will invoke the `base` function to get the current target object.
+The `FullProxy` function takes a `base` function that returns the target object. Every interaction with the proxy will invoke this function to get the current target.
+
+Optionally, you can provide an `overrides` object to customize the proxy's behavior.
 
 ### Example: Dynamic Configuration
 
@@ -53,13 +55,42 @@ console.log(configProxy.host); // Output: api.example.com
 console.log(configProxy.port); // Output: 443
 ```
 
+### Example: Customizing Behavior with Overrides
+
+You can provide a second argument to `FullProxy` to override any of the proxy handler's methods. For example, you can add logging to the `get` trap:
+
+```javascript
+import { FullProxy } from 'full-proxy';
+
+let user = { name: 'Alex', age: 30 };
+
+const userProxy = FullProxy(() => user, {
+  get(target, prop, receiver) {
+    console.log(`Getting property: ${prop}`);
+    // It's important to call the base function to get the fresh target
+    return Reflect.get(user, prop, receiver);
+  }
+});
+
+console.log(userProxy.name);
+// Getting property: name
+// Output: Alex
+
+user.name = 'Sam';
+
+console.log(userProxy.name);
+// Getting property: name
+// Output: Sam
+```
+
 ## API
 
-### `FullProxy<T>(base: () => T): T`
+### `FullProxy<T>(base: () => T, overrides?: ProxyHandler<T>): T`
 
 Creates a new proxy object.
 
 - **`base`**: A function that returns the target object for each operation. This function is called every time an operation (like `get`, `set`, `has`, etc.) is performed on the proxy.
+- **`overrides`** (optional): An object with properties that override the default proxy handler methods. You can use this to implement custom logic for any of the 13 proxy traps.
 - **Returns**: A new `Proxy` object of type `T` that wraps the object returned by the `base` function.
 
 ## How It Works
@@ -81,3 +112,5 @@ Creates a new proxy object.
 - `setPrototypeOf`
 
 For each trap, it calls the `base()` function to get the current target object and then uses `Reflect` to perform the corresponding operation on that fresh object. This ensures that every interaction is with the most up-to-date version of the target.
+
+If an `overrides` object is provided, its methods will be used in place of the default behavior, allowing for flexible and powerful customization.

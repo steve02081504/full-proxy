@@ -1,6 +1,6 @@
 {
 	"name": "full-proxy",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"main": "main.mjs",
 	"type": "module",
 	"author": "steve02081504",

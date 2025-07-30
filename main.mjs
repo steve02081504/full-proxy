@@ -3,10 +3,11 @@
  *
  * @template T
  * @param {() => T} base A function that returns the target object on each call.
+ * @param {ProxyHandler<T>} overrides An object containing overrides for the proxy methods.
  * @returns {T} A proxy object.
  */
-export function FullProxy(base) {
-	return new Proxy({}, {
+export function FullProxy(base, overrides = {}) {
+	return new Proxy({}, Object.assign({
 		apply(target, thisArg, argArray) {
 			return Reflect.apply(base(), thisArg, argArray)
 		},
@@ -46,5 +47,5 @@ export function FullProxy(base) {
 		setPrototypeOf(target, v) {
 			return Reflect.setPrototypeOf(base(), v)
 		},
-	})
+	}, overrides))
 }
